@@ -1,23 +1,15 @@
 import type { ReactNode } from 'react';
 import { useAuth, useClerk } from '@clerk/react';
 import {
-  Facebook,
   Film,
   House,
-  Instagram,
-  Linkedin,
   LogIn,
   LogOut,
-  Mail,
-  Phone,
   Plus,
-  Rss,
   Search,
   ShoppingBag,
-  Twitter,
   UserRound,
   Utensils,
-  Youtube,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 
@@ -26,15 +18,6 @@ const navLinks: Array<[string, string]> = [
   ['/?view=recipes', 'Recipes'],
   ['/add', 'Add recipe'],
   ['/from-video', 'From video'],
-];
-
-const socialLinks: Array<[string, typeof Facebook]> = [
-  ['Facebook', Facebook],
-  ['YouTube', Youtube],
-  ['RSS', Rss],
-  ['Instagram', Instagram],
-  ['LinkedIn', Linkedin],
-  ['X', Twitter],
 ];
 
 function breadcrumbFor(location: string): string | null {
@@ -177,58 +160,15 @@ export function AppShell({ children }: { children: ReactNode }) {
       </section>
 
       <footer className="bg-card">
-        <div className="mx-auto max-w-[1200px] px-6 py-12">
-          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
-            <div>
-              <h3 className="text-[19px] text-foreground">About Recipe Kitchen</h3>
-              <p className="mt-4 text-[13px] leading-relaxed text-muted-foreground">
-                Recipe Kitchen helps home cooks find something worth making tonight, see the calories before they
-                commit, and know what every ingredient costs at the store.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-[19px] text-foreground">Need help?</h3>
-              <p className="mt-4 text-[13px] text-muted-foreground">Reach the kitchen any time.</p>
-              <p className="mt-3 flex items-center gap-2 text-[13px] text-muted-foreground">
-                <Phone className="h-3.5 w-3.5 text-primary" /> +1 555 555 555
-              </p>
-              <p className="mt-2 flex items-center gap-2 text-[13px] text-muted-foreground">
-                <Mail className="h-3.5 w-3.5 text-primary" /> hello@recipekitchen.app
-              </p>
-            </div>
-            <div>
-              <h3 className="text-[19px] text-foreground">Follow us</h3>
-              <div className="mt-4 flex flex-wrap gap-1.5">
-                {socialLinks.map(([label, Icon]) => (
-                  <span
-                    key={label}
-                    className="flex h-8 w-8 items-center justify-center bg-primary text-primary-foreground"
-                    aria-label={label}
-                    title={label}
-                  >
-                    <Icon className="h-4 w-4" />
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-          <div className="mt-10 flex flex-col gap-3 border-t border-border pt-6 text-[12px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-            <p>Copyright {new Date().getFullYear()} Recipe Kitchen. All rights reserved.</p>
-            <nav className="flex flex-wrap gap-x-5 gap-y-2">
-              <Link href="/" className="transition-colors hover:text-primary">
-                Home
+        <div className="mx-auto flex max-w-[1200px] flex-col gap-4 px-6 py-7 text-[12px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <p>Recipe Kitchen · {new Date().getFullYear()}</p>
+          <nav className="flex flex-wrap gap-x-5 gap-y-2">
+            {navLinks.map(([href, label]) => (
+              <Link key={label} href={href} className="transition-colors hover:text-primary">
+                {label}
               </Link>
-              <Link href="/?view=recipes" className="transition-colors hover:text-primary">
-                Recipes
-              </Link>
-              <Link href="/add" className="transition-colors hover:text-primary">
-                Submit a recipe
-              </Link>
-              <Link href="/from-video" className="transition-colors hover:text-primary">
-                From video
-              </Link>
-            </nav>
-          </div>
+            ))}
+          </nav>
         </div>
       </footer>
 
