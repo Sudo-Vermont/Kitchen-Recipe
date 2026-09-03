@@ -1,0 +1,186 @@
+@layer theme, base, clerk, components, utilities;
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Pacifico&family=Signika:wght@300;400;600;700&display=swap');
+@import 'tailwindcss';
+@import '@clerk/themes/shadcn.css';
+@import 'tw-animate-css';
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-card-border: hsl(var(--card-border));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-popover-border: hsl(var(--popover-border));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-primary-border: var(--primary-border);
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-secondary-border: var(--secondary-border);
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-muted-border: var(--muted-border);
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-accent-border: var(--accent-border);
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --font-sans: var(--app-font-sans);
+  --font-serif: var(--app-font-serif);
+  --font-mono: var(--app-font-mono);
+  --radius-sm: calc(var(--radius) - 1px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 1px);
+  --radius-xl: calc(var(--radius) + 3px);
+}
+
+:root {
+  /* Warm wood/linen ground with white panels and a coral accent. */
+  --background: 43 33% 80%;
+  --foreground: 0 0% 29%;
+  --border: 0 0% 88%;
+  --input: 0 0% 85%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 29%;
+  --card-border: 0 0% 89%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 29%;
+  --popover-border: 0 0% 89%;
+  --primary: 3 91% 75%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 44 32% 93%;
+  --secondary-foreground: 0 0% 29%;
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 53%;
+  --accent: 4 60% 66%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 62% 52%;
+  --destructive-foreground: 0 0% 100%;
+  --ring: 3 91% 70%;
+  --primary-border: hsl(3 60% 68%);
+  --secondary-border: hsl(44 24% 84%);
+  --muted-border: hsl(0 0% 89%);
+  --accent-border: hsl(4 50% 59%);
+  --destructive-border: hsl(0 62% 45%);
+  --button-outline: hsl(0 0% 84%);
+  --app-font-sans: 'Open Sans', 'Segoe UI', sans-serif;
+  --app-font-serif: 'Signika', 'Open Sans', sans-serif;
+  --app-font-mono: 'Open Sans', 'Segoe UI', sans-serif;
+  --app-font-logo: 'Pacifico', 'Signika', cursive;
+  --radius: 3px;
+  --wood-a: 43 33% 80%;
+  --wood-b: 43 29% 77%;
+  --wood-c: 40 25% 70%;
+}
+
+.dark {
+  --background: 24 8% 12%;
+  --foreground: 0 0% 92%;
+  --border: 24 6% 26%;
+  --input: 24 6% 30%;
+  --card: 24 8% 17%;
+  --card-foreground: 0 0% 92%;
+  --card-border: 24 6% 26%;
+  --popover: 24 8% 17%;
+  --popover-foreground: 0 0% 92%;
+  --popover-border: 24 6% 26%;
+  --primary: 3 78% 68%;
+  --primary-foreground: 24 10% 10%;
+  --secondary: 24 7% 23%;
+  --secondary-foreground: 0 0% 92%;
+  --muted: 24 7% 21%;
+  --muted-foreground: 0 0% 66%;
+  --accent: 4 58% 60%;
+  --accent-foreground: 24 10% 10%;
+  --destructive: 0 62% 58%;
+  --destructive-foreground: 24 10% 10%;
+  --ring: 3 78% 62%;
+  --primary-border: hsl(3 60% 58%);
+  --secondary-border: hsl(24 6% 32%);
+  --muted-border: hsl(24 6% 29%);
+  --accent-border: hsl(4 50% 52%);
+  --destructive-border: hsl(0 62% 48%);
+  --button-outline: hsl(24 6% 32%);
+  --wood-a: 24 8% 14%;
+  --wood-b: 24 8% 12%;
+  --wood-c: 24 8% 10%;
+}
+
+@layer base {
+  * { @apply border-border; }
+  html { scroll-behavior: smooth; }
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    /* Light horizontal wood grain, the way the reference page reads. */
+    background-image:
+      repeating-linear-gradient(
+        180deg,
+        hsl(var(--wood-a)) 0px,
+        hsl(var(--wood-b)) 3px,
+        hsl(var(--wood-a)) 7px,
+        hsl(var(--wood-c) / 0.55) 8px,
+        hsl(var(--wood-a)) 12px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        hsl(var(--wood-c) / 0.22) 0px,
+        transparent 2px,
+        transparent 140px,
+        hsl(var(--wood-c) / 0.22) 142px
+      );
+  }
+  h1, h2, h3, h4 { font-family: var(--app-font-serif); font-weight: 400; }
+  button, a, input, textarea, select { -webkit-tap-highlight-color: transparent; }
+}
+
+@layer utilities {
+  .font-display { font-family: var(--app-font-serif); }
+  .font-data { font-family: var(--app-font-mono); }
+  .font-logo { font-family: var(--app-font-logo); }
+
+  /* Coral banner heading with the notched ends from the reference. */
+  .ribbon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    padding: 0.5rem 2.1rem;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 15px) 50%, 100% 100%, 0 100%, 15px 50%);
+  }
+  .ribbon-flat {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    clip-path: none;
+  }
+  .panel-shadow { box-shadow: 0 1px 2px hsl(0 0% 0% / 0.06); }
+
+  .animate-rise { animation: rise 0.5s cubic-bezier(.22,1,.36,1) both; }
+  .animate-fade { animation: fade 0.4s ease both; }
+  .skeleton-shimmer {
+    background: linear-gradient(105deg, hsl(var(--muted)) 20%, hsl(var(--secondary)) 40%, hsl(var(--muted)) 60%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+  }
+  .hover-lift { transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease; }
+  .hover-lift:hover { transform: translateY(-3px); box-shadow: 0 10px 22px hsl(0 0% 0% / 0.13); }
+  .safe-bottom { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+
+  /* Replit button primitives: subtle darkening instead of a colour change. */
+  .hover-elevate { transition: filter 160ms ease, background-color 160ms ease; }
+  .hover-elevate:hover { filter: brightness(0.95); }
+  .active-elevate-2:active { filter: brightness(0.9); }
+}
+
+@keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes shimmer { to { background-position: -200% 0; } }

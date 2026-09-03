@@ -1,0 +1,536 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: recipes
+    description: Recipe discovery and authoring
+  - name: Storage
+    description: Protected video upload and object serving endpoints
+  - name: video-import
+    description: Turn cooking videos into recipe drafts
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /recipes:
+    get:
+      operationId: listRecipes
+      tags: [recipes]
+      summary: List recipes
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: dietary
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: maxCalories
+          in: query
+          required: false
+          schema:
+            type: number
+            minimum: 1
+      responses:
+        "200":
+          description: Recipes matching the filters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Recipe"
+    post:
+      operationId: createRecipe
+      tags: [recipes]
+      summary: Add a recipe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecipeInput"
+      responses:
+        "201":
+          description: Recipe created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recipe"
+        "400":
+          description: Invalid recipe
+  /recipes/{id}:
+    get:
+      operationId: getRecipe
+      tags: [recipes]
+      summary: Get a recipe
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Recipe details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recipe"
+        "404":
+          description: Recipe not found
+    patch:
+      operationId: updateRecipe
+      tags: [recipes]
+      summary: Update a recipe
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecipeUpdate"
+      responses:
+        "200":
+          description: Recipe updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recipe"
+        "404":
+          description: Recipe not found
+    delete:
+      operationId: deleteRecipe
+      tags: [recipes]
+      summary: Delete a recipe
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Recipe deleted
+        "404":
+          description: Recipe not found
+  /recipes/summary:
+    get:
+      operationId: getRecipeSummary
+      tags: [recipes]
+      summary: Get recipe library summary
+      responses:
+        "200":
+          description: Recipe library summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecipeSummary"
+  /recipes/from-video:
+    post:
+      operationId: analyzeRecipeFromVideo
+      tags: [video-import]
+      summary: Analyze a cooking video into a recipe draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VideoRecipeImportRequest"
+      responses:
+        "202":
+          description: Video analysis started; poll the job until complete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VideoRecipeImportJobResponse"
+        "400":
+          description: Invalid video source
+        "401":
+          description: Authentication required
+        "413":
+          description: Video is too large
+        "422":
+          description: Video could not be analyzed
+  /recipes/from-video/jobs/{jobId}:
+    get:
+      operationId: getVideoRecipeImportJob
+      tags: [video-import]
+      summary: Get the status of a cooking video recipe import
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Completed AI-generated recipe draft
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VideoRecipeImportResponse"
+        "202":
+          description: Video analysis is still processing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VideoRecipeImportJobResponse"
+        "401":
+          description: Authentication required
+        "404":
+          description: Video analysis job not found
+        "422":
+          description: Video could not be analyzed
+  /storage/uploads/request-url:
+    post:
+      operationId: requestUploadUrl
+      tags: [Storage]
+      summary: Request a presigned URL for a cooking video upload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UploadUrlRequest"
+      responses:
+        "200":
+          description: Presigned upload URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadUrlResponse"
+        "400":
+          description: Invalid upload metadata
+        "401":
+          description: Authentication required
+  /storage/objects/{objectPath}:
+    get:
+      operationId: getStorageObject
+      tags: [Storage]
+      summary: Serve an uploaded object
+      parameters:
+        - name: objectPath
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Object content
+          content:
+            "*/*":
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: Object not found
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    Ingredient:
+      type: object
+      properties:
+        name:
+          type: string
+        quantity:
+          type: string
+        aisle:
+          type: string
+        shoppingUrl:
+          type: string
+        price:
+          type: number
+          minimum: 0
+      required: [name, quantity, aisle, shoppingUrl, price]
+    Recipe:
+      type: object
+      properties:
+        id:
+          type: number
+        title:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type: string
+        category:
+          type: string
+        dietary:
+          type: array
+          items:
+            type: string
+        prepMinutes:
+          type: number
+        cookMinutes:
+          type: number
+        servings:
+          type: number
+        calories:
+          type: number
+        protein:
+          type: number
+        carbs:
+          type: number
+        fat:
+          type: number
+        mealPrice:
+          type: number
+          minimum: 0
+        wholeItemCost:
+          type: number
+          minimum: 0
+        ingredients:
+          type: array
+          items:
+            $ref: "#/components/schemas/Ingredient"
+        instructions:
+          type: array
+          items:
+            type: string
+        author:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - description
+        - imageUrl
+        - category
+        - dietary
+        - prepMinutes
+        - cookMinutes
+        - servings
+        - calories
+        - protein
+        - carbs
+        - fat
+        - mealPrice
+        - wholeItemCost
+        - ingredients
+        - instructions
+        - author
+        - createdAt
+    RecipeInput:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+          minLength: 1
+        imageUrl:
+          type: string
+        category:
+          type: string
+          minLength: 1
+        dietary:
+          type: array
+          items:
+            type: string
+        prepMinutes:
+          type: number
+          minimum: 0
+        cookMinutes:
+          type: number
+          minimum: 0
+        servings:
+          type: number
+          minimum: 1
+        calories:
+          type: number
+          minimum: 0
+        protein:
+          type: number
+          minimum: 0
+        carbs:
+          type: number
+          minimum: 0
+        fat:
+          type: number
+          minimum: 0
+        ingredients:
+          type: array
+          items:
+            $ref: "#/components/schemas/Ingredient"
+        instructions:
+          type: array
+          items:
+            type: string
+        author:
+          type: string
+          minLength: 1
+      required:
+        - title
+        - description
+        - imageUrl
+        - category
+        - dietary
+        - prepMinutes
+        - cookMinutes
+        - servings
+        - calories
+        - protein
+        - carbs
+        - fat
+        - ingredients
+        - instructions
+        - author
+    RecipeUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        imageUrl:
+          type: string
+        category:
+          type: string
+        dietary:
+          type: array
+          items:
+            type: string
+        prepMinutes:
+          type: number
+        cookMinutes:
+          type: number
+        servings:
+          type: number
+        calories:
+          type: number
+        protein:
+          type: number
+        carbs:
+          type: number
+        fat:
+          type: number
+        ingredients:
+          type: array
+          items:
+            $ref: "#/components/schemas/Ingredient"
+        instructions:
+          type: array
+          items:
+            type: string
+        author:
+          type: string
+    RecipeSummary:
+      type: object
+      properties:
+        totalRecipes:
+          type: number
+        totalCategories:
+          type: number
+        averageCalories:
+          type: number
+        popularCategory:
+          type: string
+        totalIngredients:
+          type: number
+      required:
+        - totalRecipes
+        - totalCategories
+        - averageCalories
+        - popularCategory
+        - totalIngredients
+    UploadUrlRequest:
+      type: object
+      required: [name, size, contentType]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        size:
+          type: number
+          minimum: 1
+        contentType:
+          type: string
+          minLength: 1
+    UploadUrlResponse:
+      type: object
+      required: [uploadURL, objectPath]
+      properties:
+        uploadURL:
+          type: string
+        objectPath:
+          type: string
+        metadata:
+          $ref: "#/components/schemas/UploadUrlRequest"
+    VideoRecipeImportRequest:
+      type: object
+      required: [sourceType, source]
+      properties:
+        sourceType:
+          type: string
+          enum: [url, upload]
+        source:
+          type: string
+          minLength: 1
+        mimeType:
+          type: string
+    VideoRecipeImportResponse:
+      type: object
+      required: [recipe, sourceLabel]
+      properties:
+        recipe:
+          $ref: "#/components/schemas/RecipeInput"
+        sourceLabel:
+          type: string
+    VideoRecipeImportJobResponse:
+      type: object
+      required: [jobId, status]
+      properties:
+        jobId:
+          type: string
+        status:
+          type: string
+          enum: [processing, complete, failed]
+        recipe:
+          $ref: "#/components/schemas/RecipeInput"
+        sourceLabel:
+          type: string
+        error:
+          type: string
+

@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Recipe Kitchen"
+description = "A warm recipe discovery app where people can browse recipes, see calories and nutrition, find where to buy ingredients, and add their own recipes."
+version = "1.0.0"
+id = "artifacts/recipe-kitchen"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19542
+
+[services.development]
+run = "pnpm --filter @workspace/recipe-kitchen run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/recipe-kitchen", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/recipe-kitchen/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19542"
+BASE_PATH = "/"
