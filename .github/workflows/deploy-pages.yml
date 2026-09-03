@@ -1,0 +1,69 @@
+name: Deploy frontend to GitHub Pages
+
+# Builds the recipe-kitchen frontend as a static demo and publishes it.
+# Pages cannot run the API server, Postgres, Clerk, or ffmpeg, so the build
+# sets VITE_DEMO=true and the app answers its own API calls from bundled
+# sample data. See README.md for what does and does not work in the demo.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build the frontend
+        working-directory: artifacts/recipe-kitchen
+        env:
+          VITE_DEMO: 'true'
+          # Pages serves the site from /<repo>/, so assets and routes need that prefix.
+          BASE_PATH: /${{ github.event.repository.name }}/
+          PORT: '5000'
+        run: pnpm run build
+
+      - name: Add SPA fallback and disable Jekyll
+        working-directory: artifacts/recipe-kitchen/dist/public
+        # Pages has no rewrite rules, so a deep link like /recipes/3 would 404.
+        # Serving index.html as 404.html lets the client router take over.
+        run: |
+          cp index.html 404.html
+          touch .nojekyll
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: artifacts/recipe-kitchen/dist/public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -5,7 +5,10 @@ import { defineConfig } from 'vite';
 
 import runtimeErrorOverlay from '@replit/vite-plugin-runtime-error-modal';
 
-const rawPort = process.env.PORT;
+// Static demo builds (GitHub Pages) have no dev server and no API server.
+const isDemo = process.env.VITE_DEMO === 'true';
+
+const rawPort = process.env.PORT ?? (isDemo ? '5000' : undefined);
 
 if (!rawPort) {
   throw new Error(
@@ -26,6 +29,16 @@ if (!basePath) {
     'BASE_PATH environment variable is required but was not provided.',
   );
 }
+
+// Clerk needs a backend to issue sessions, so the demo swaps it for a stub
+// that reports a signed-out state rather than failing on a missing key.
+const demoAliases = isDemo
+  ? [
+      { find: /^@clerk\/react$/, replacement: path.resolve(import.meta.dirname, 'src/demo/clerk.tsx') },
+      { find: /^@clerk\/react\/internal$/, replacement: path.resolve(import.meta.dirname, 'src/demo/clerk.tsx') },
+      { find: /^@clerk\/themes$/, replacement: path.resolve(import.meta.dirname, 'src/demo/clerk.tsx') },
+    ]
+  : [];
 
 export default defineConfig({
   base: basePath,
@@ -48,15 +61,21 @@ export default defineConfig({
       : []),
   ],
   resolve: {
-    alias: {
-      '@': path.resolve(import.meta.dirname, 'src'),
-      '@assets': path.resolve(
-        import.meta.dirname,
-        '..',
-        '..',
-        'attached_assets',
-      ),
-    },
+    // Array form so the demo entries can use anchored regexes. `@assets` must
+    // come before `@` so the more specific prefix wins.
+    alias: [
+      ...demoAliases,
+      {
+        find: '@assets',
+        replacement: path.resolve(
+          import.meta.dirname,
+          '..',
+          '..',
+          'attached_assets',
+        ),
+      },
+      { find: '@', replacement: path.resolve(import.meta.dirname, 'src') },
+    ],
     dedupe: ['react', 'react-dom'],
   },
   root: path.resolve(import.meta.dirname),
